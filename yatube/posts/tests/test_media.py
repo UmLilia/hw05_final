@@ -12,7 +12,7 @@ from posts.tests.test_urls import URL_INDEX, URL_CREATE
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
-SMALL_GIF = (            
+SMALL_GIF = (
     b'\x47\x49\x46\x38\x39\x61\x02\x00'
     b'\x01\x00\x80\x00\x00\x00\x00\x00'
     b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
@@ -83,7 +83,8 @@ class PostMediaTests(TestCase):
         self.assertEqual(Post.objects.count(), posts_count + 1)
 
     def test_page_with_image_context(self):
-        """При выводе поста с картинкой изображение передаётся в словаре context"""
+        """При выводе поста с картинкой изображение передаётся
+        в словаре context"""
         url_group_list = reverse(
             'posts:group_list',
             kwargs={'slug': PostMediaTests.group.slug}

@@ -126,7 +126,6 @@ class PostPagesTests(TestCase):
                 self.assertIsInstance(form_field_1, expected)
                 self.assertIsInstance(form_field_2, expected)
 
-    
     def test_cache(self):
         """При удалении записи из базы, она остаётся в response.content."""
         first_content = self.authorized_client.get(URL_INDEX).content
@@ -138,7 +137,7 @@ class PostPagesTests(TestCase):
         self.assertNotEqual(first_content, content_3)
 
     def test_follow(self):
-        """Авторизованный пользователь может подписываться на других пользователей 
+        """Авторизованный пользователь может подписываться на других пользователей
         и удалять их из подписок."""
         url_follow_profile = reverse(
             'posts:profile_follow',
@@ -154,7 +153,7 @@ class PostPagesTests(TestCase):
         self.assertEqual(len(Follow.objects.all()), 0)
 
     def test_follow_post(self):
-        """Новая запись пользователя появляется в ленте тех, кто на него подписан 
+        """Новая запись пользователя появляется в ленте тех, кто на него подписан
         и не появляется в ленте тех, кто не подписан."""
         url_follow_profile = reverse(
             'posts:profile_follow',
