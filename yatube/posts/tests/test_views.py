@@ -171,7 +171,8 @@ class PostPagesTests(TestCase):
         self.assertNotEqual(first_content, content_3)
 
     def test_follow(self):
-        """Авторизованный пользователь может подписываться на других пользователей."""
+        """Авторизованный пользователь может подписываться
+        на других пользователей."""
         url_follow_profile = reverse(
             'posts:profile_follow',
             kwargs={'username': PostPagesTests.author}
@@ -180,7 +181,8 @@ class PostPagesTests(TestCase):
         self.assertEqual(len(Follow.objects.all()), 1)
 
     def test_unfollow(self):
-        """Авторизованный пользователь может удалять других пользователей из подписок."""
+        """Авторизованный пользователь может удалять других пользователей
+        из подписок."""
         url_follow_profile = reverse(
             'posts:profile_follow',
             kwargs={'username': PostPagesTests.author}
