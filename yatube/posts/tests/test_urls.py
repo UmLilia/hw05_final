@@ -105,8 +105,12 @@ class PostURLTests(TestCase):
             'posts:post_edit',
             kwargs={'post_id': PostURLTests.post.id}
         )
+        url_post_detail = reverse(
+            'posts:post_detail',
+            kwargs={'post_id': PostURLTests.post.id}
+        )
         response = self.authorized_client.get(url_post_edit, follow=True)
-        self.assertRedirects(response, f'/posts/{PostURLTests.post.id}/')
+        self.assertRedirects(response, url_post_detail)
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""

@@ -16,13 +16,15 @@
           Отписаться
         </a>
         {% else %}
+          {% if user.is_authenticated %}
 
-          <a
-            class="btn btn-lg btn-primary"
-            href="{% url 'posts:profile_follow' author.username %}" role="button"
-          >
-            Подписаться
-          </a>
+            <a
+              class="btn btn-lg btn-primary"
+              href="{% url 'posts:profile_follow' author.username %}" role="button"
+            >
+              Подписаться
+            </a>
+          {% endif %} 
         {% endif %} 
       {% endif %} 
       {% for post in page_obj %} 

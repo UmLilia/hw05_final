@@ -39,13 +39,12 @@ def group_posts(request, slug):
 def profile(request, username):
     author = get_object_or_404(User, username=username)
     posts = author.posts.select_related('author')
-    if request.user.is_authenticated:
-        following = Follow.objects.filter(user=request.user, author=author)
-    else:
-        following = False
+    follow = Follow.objects.filter(
+        user__id=request.user.id,
+        author=author).exists() and request.user != author
     context = {
         'author': author,
-        'following': following,
+        'follow': follow,
         'page_obj': paginator(request, posts),
     }
     return render(request, 'posts/profile.html', context)
@@ -69,12 +68,11 @@ def post_create(request):
         request.POST or None,
         files=request.FILES or None
     )
-    if request.method == 'POST':
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.author = request.user
-            post.save()
-            return redirect('posts:profile', post.author)
+    if form.is_valid():
+        post = form.save(commit=False)
+        post.author = request.user
+        post.save()
+        return redirect('posts:profile', post.author)
     context = {'form': form}
     return render(request, 'posts/create.html', context)
 

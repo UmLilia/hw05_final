@@ -8,14 +8,14 @@ NUMBER_OF_LETTERS: int = 15
 
 class Group(models.Model):
     title = models.CharField(
-        'название',
+        verbose_name='название',
         max_length=200
     )
     slug = models.SlugField(
-        'путь',
+        verbose_name='путь',
         unique=True
     )
-    description = models.TextField('описание')
+    description = models.TextField(verbose_name='описание')
 
     def __str__(self) -> str:
         return self.title
@@ -23,10 +23,10 @@ class Group(models.Model):
 
 class Post(models.Model):
     text = models.TextField(
-        'Текст поста'
+        verbose_name='Текст поста'
     )
     pub_date = models.DateTimeField(
-        'дата публикации',
+        verbose_name='дата публикации',
         auto_now_add=True
     )
     author = models.ForeignKey(
@@ -44,7 +44,7 @@ class Post(models.Model):
         verbose_name='Группа'
     )
     image = models.ImageField(
-        'Картинка',
+        verbose_name='Картинка',
         upload_to='posts/',
         blank=True
     )
@@ -70,10 +70,10 @@ class Comment(models.Model):
         verbose_name='Автор'
     )
     text = models.TextField(
-        'Текст комментария'
+        verbose_name='Текст комментария'
     )
     created = models.DateTimeField(
-        'дата публикации',
+        verbose_name='дата публикации',
         auto_now_add=True
     )
 
@@ -97,3 +97,10 @@ class Follow(models.Model):
         related_name='following',
         verbose_name='Автор'
     )
+
+    class Meta:
+        constraints = [
+          models.UniqueConstraint(
+            fields=("user", "author"), name="unique_name_in_room"
+          )
+        ]

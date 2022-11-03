@@ -23,7 +23,7 @@ def forbidden(request, exception):
     )
 
 
-def internal_server_error(request, exception):
+def internal_server_error(request, *args, **argv):
     return render(
         request,
         'core/500.html',

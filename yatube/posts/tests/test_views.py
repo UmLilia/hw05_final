@@ -1,12 +1,16 @@
-from django.test import Client, TestCase
+import shutil
+
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django import forms
 from django.core.cache import cache
 
 from posts.models import Post, Group, User, Follow
 from posts.tests.test_urls import URL_INDEX, URL_CREATE, URL_FOLLOW
+from posts.tests.test_forms import UPLOADED, TEMP_MEDIA_ROOT
 
 
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostPagesTests(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -18,17 +22,47 @@ class PostPagesTests(TestCase):
             slug='test-slug',
             description='Тестовое описание',
         )
+        cls.image = UPLOADED
         cls.post = Post.objects.create(
             author=cls.author,
             text='Тестовый пост',
-            group=cls.group
+            group=cls.group,
+            image=cls.image
         )
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
         self.post_author = Client()
         self.post_author.force_login(self.author)
+
+    def test_page_with_image_context(self):
+        """При выводе поста с картинкой изображение передаётся
+        в словаре context"""
+        pages = (
+            reverse(
+                'posts:group_list',
+                kwargs={'slug': PostPagesTests.group.slug}
+            ),
+            reverse(
+                'posts:profile',
+                kwargs={'username': PostPagesTests.author}
+            ),
+            reverse(
+                'posts:post_detail',
+                kwargs={'post_id': PostPagesTests.post.id}
+            )
+        )
+        for page in pages:
+            with self.subTest(page=page):
+                response = self.authorized_client.get(page)
+                context_image = response.context.get('post').image
+                self.assertEqual(context_image, 'posts/small.gif')
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
@@ -137,8 +171,16 @@ class PostPagesTests(TestCase):
         self.assertNotEqual(first_content, content_3)
 
     def test_follow(self):
-        """Авторизованный пользователь может подписываться на других пользователей
-        и удалять их из подписок."""
+        """Авторизованный пользователь может подписываться на других пользователей."""
+        url_follow_profile = reverse(
+            'posts:profile_follow',
+            kwargs={'username': PostPagesTests.author}
+        )
+        self.authorized_client.post(url_follow_profile)
+        self.assertEqual(len(Follow.objects.all()), 1)
+
+    def test_unfollow(self):
+        """Авторизованный пользователь может удалять других пользователей из подписок."""
         url_follow_profile = reverse(
             'posts:profile_follow',
             kwargs={'username': PostPagesTests.author}
@@ -148,13 +190,12 @@ class PostPagesTests(TestCase):
             kwargs={'username': PostPagesTests.author}
         )
         self.authorized_client.post(url_follow_profile)
-        self.assertEqual(len(Follow.objects.all()), 1)
         self.authorized_client.post(url_unfollow_profile)
         self.assertEqual(len(Follow.objects.all()), 0)
 
     def test_follow_post(self):
-        """Новая запись пользователя появляется в ленте тех, кто на него подписан
-        и не появляется в ленте тех, кто не подписан."""
+        """Новая запись пользователя появляется в ленте тех,
+        кто на него подписан."""
         url_follow_profile = reverse(
             'posts:profile_follow',
             kwargs={'username': PostPagesTests.author}
@@ -167,6 +208,19 @@ class PostPagesTests(TestCase):
         self.assertContains(
             self.authorized_client.get(URL_FOLLOW),
             'Тест подписок!'
+        )
+
+    def test_follow_post(self):
+        """Новая запись пользователя не появляется в ленте тех,
+        кто на него не подписан."""
+        url_follow_profile = reverse(
+            'posts:profile_follow',
+            kwargs={'username': PostPagesTests.author}
+        )
+        self.authorized_client.post(url_follow_profile)
+        self.post_author.post(
+            URL_CREATE,
+            data={'text': 'Тест подписок!'}
         )
         self.assertNotContains(
             self.post_author.get(URL_FOLLOW),
